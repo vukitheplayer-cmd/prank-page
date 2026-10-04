@@ -1,1 +1,195 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bezbednosno upozorenje</title>
 
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: #050505;
+    color: #00ff66;
+    font-family: monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+}
+
+.container {
+    width: 100%;
+    max-width: 430px;
+    background: #090909;
+    border: 2px solid #00ff66;
+    border-radius: 10px;
+    padding: 25px 20px;
+    box-shadow: 0 0 25px rgba(0,255,102,.35);
+}
+
+.warning {
+    text-align: center;
+    color: #ff3333;
+    font-size: 22px;
+    font-weight: bold;
+    animation: blink 1s infinite;
+}
+
+.subtitle {
+    text-align: center;
+    color: #aaa;
+    margin: 15px 0 25px;
+}
+
+.status {
+    margin: 15px 0;
+    font-size: 14px;
+}
+
+.ok {
+    color: #00ff66;
+}
+
+.alert {
+    color: #ff3333;
+}
+
+.progress-box {
+    height: 24px;
+    border: 1px solid #00ff66;
+    margin-top: 25px;
+    padding: 2px;
+}
+
+.progress {
+    height: 100%;
+    width: 0%;
+    background: #00ff66;
+    transition: width .25s;
+}
+
+.percent {
+    text-align: center;
+    margin-top: 8px;
+}
+
+.final {
+    display: none;
+    text-align: center;
+}
+
+.final h2 {
+    color: #00ff66;
+}
+
+button {
+    width: 100%;
+    margin-top: 25px;
+    padding: 14px;
+    background: #111;
+    color: white;
+    border: 1px solid white;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 15px;
+}
+
+@keyframes blink {
+    50% {
+        opacity: .35;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container" id="screen">
+
+    <div class="warning">
+        ⚠ BEZBEDNOSNO UPOZORENJE ⚠
+    </div>
+
+    <div class="subtitle">
+        Pokrenuta je bezbednosna provera uređaja...
+    </div>
+
+    <div class="status ok">[✓] Provera sistema</div>
+    <div class="status ok">[✓] Provera memorije</div>
+    <div class="status ok">[✓] Provera aplikacija</div>
+    <div class="status alert" id="alert">
+        [!] Provera nepoznatih aktivnosti...
+    </div>
+
+    <div class="progress-box">
+        <div class="progress" id="progress"></div>
+    </div>
+
+    <div class="percent" id="percent">0%</div>
+
+    <button onclick="finish()">
+        PREKINI PROVERU
+    </button>
+
+</div>
+
+<script>
+
+let progress = 0;
+
+const progressBar = document.getElementById("progress");
+const percent = document.getElementById("percent");
+const alertText = document.getElementById("alert");
+
+const timer = setInterval(() => {
+
+    progress += Math.floor(Math.random() * 5) + 1;
+
+    if (progress >= 100) {
+        progress = 100;
+        clearInterval(timer);
+
+        alertText.textContent =
+            "[✓] Provera završena";
+
+        alertText.className = "status ok";
+    }
+
+    progressBar.style.width = progress + "%";
+    percent.textContent = progress + "%";
+
+}, 350);
+
+
+function finish() {
+
+    clearInterval(timer);
+
+    document.getElementById("screen").innerHTML = `
+        <div class="final" style="display:block">
+            <h2>😂 ŠALA!</h2>
+
+            <p>
+                Nema nikakvog virusa.
+            </p>
+
+            <p>
+                Ovo je bila samo bezazlena šala.
+            </p>
+
+            <p style="color:#777">
+                Tvoj telefon nije skeniran niti je bilo šta promenjeno.
+            </p>
+        </div>
+    `;
+}
+
+</script>
+
+</body>
+</html>
