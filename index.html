@@ -13,7 +13,7 @@
 body {
     margin: 0;
     min-height: 100vh;
-    background: #050505;
+    background: #030303;
     color: #00ff66;
     font-family: monospace;
     display: flex;
@@ -25,19 +25,19 @@ body {
 .container {
     width: 100%;
     max-width: 430px;
-    background: #090909;
+    background: #080808;
     border: 2px solid #00ff66;
     border-radius: 10px;
     padding: 25px 20px;
-    box-shadow: 0 0 25px rgba(0,255,102,.35);
+    box-shadow: 0 0 30px rgba(0,255,102,.4);
 }
 
 .warning {
     text-align: center;
-    color: #ff3333;
+    color: #ff2222;
     font-size: 22px;
     font-weight: bold;
-    animation: blink 1s infinite;
+    animation: blink .7s infinite;
 }
 
 .subtitle {
@@ -56,7 +56,7 @@ body {
 }
 
 .alert {
-    color: #ff3333;
+    color: #ff2222;
 }
 
 .progress-box {
@@ -70,7 +70,6 @@ body {
     height: 100%;
     width: 0%;
     background: #00ff66;
-    transition: width .25s;
 }
 
 .percent {
@@ -78,30 +77,25 @@ body {
     margin-top: 8px;
 }
 
-.final {
-    display: none;
+.tap {
     text-align: center;
+    color: white;
+    margin-top: 25px;
+    animation: blink 1s infinite;
+}
+
+.final {
+    text-align: center;
+    color: white;
 }
 
 .final h2 {
     color: #00ff66;
 }
 
-button {
-    width: 100%;
-    margin-top: 25px;
-    padding: 14px;
-    background: #111;
-    color: white;
-    border: 1px solid white;
-    border-radius: 6px;
-    font-family: monospace;
-    font-size: 15px;
-}
-
 @keyframes blink {
     50% {
-        opacity: .35;
+        opacity: .3;
     }
 }
 </style>
@@ -122,6 +116,7 @@ button {
     <div class="status ok">[✓] Provera sistema</div>
     <div class="status ok">[✓] Provera memorije</div>
     <div class="status ok">[✓] Provera aplikacija</div>
+
     <div class="status alert" id="alert">
         [!] Provera nepoznatih aktivnosti...
     </div>
@@ -132,63 +127,103 @@ button {
 
     <div class="percent" id="percent">0%</div>
 
-    <button onclick="finish()">
-        PREKINI PROVERU
-    </button>
+    <div class="tap">
+        DODIRNI EKRAN ZA NASTAVAK
+    </div>
 
 </div>
 
 <script>
-
+let started = false;
 let progress = 0;
+let audioContext;
+let oscillator;
+let soundTimer;
 
-const progressBar = document.getElementById("progress");
-const percent = document.getElementById("percent");
-const alertText = document.getElementById("alert");
+function startPrank() {
+    if (started) return;
 
-const timer = setInterval(() => {
+    started = true;
 
-    progress += Math.floor(Math.random() * 5) + 1;
-
-    if (progress >= 100) {
-        progress = 100;
-        clearInterval(timer);
-
-        alertText.textContent =
-            "[✓] Provera završena";
-
-        alertText.className = "status ok";
+    if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
     }
 
-    progressBar.style.width = progress + "%";
-    percent.textContent = progress + "%";
+    if (navigator.vibrate) {
+        navigator.vibrate([200, 100, 200, 100, 400]);
+    }
 
-}, 350);
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
+    oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
 
-function finish() {
+    oscillator.type = "sawtooth";
+    oscillator.frequency.value = 180;
+    gain.gain.value = 0.06;
 
-    clearInterval(timer);
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start();
 
-    document.getElementById("screen").innerHTML = `
-        <div class="final" style="display:block">
-            <h2>😂 ŠALA!</h2>
+    let direction = 1;
 
-            <p>
-                Nema nikakvog virusa.
-            </p>
+    soundTimer = setInterval(() => {
+        let frequency = oscillator.frequency.value;
 
-            <p>
-                Ovo je bila samo bezazlena šala.
-            </p>
+        if (frequency >= 650) direction = -1;
+        if (frequency <= 180) direction = 1;
 
-            <p style="color:#777">
-                Tvoj telefon nije skeniran niti je bilo šta promenjeno.
-            </p>
-        </div>
-    `;
+        oscillator.frequency.value += direction * 30;
+    }, 80);
+
+    document.querySelector(".tap").style.display = "none";
+
+    runScan();
 }
 
+function runScan() {
+    const progressBar = document.getElementById("progress");
+    const percent = document.getElementById("percent");
+    const alertText = document.getElementById("alert");
+
+    const timer = setInterval(() => {
+        progress += Math.floor(Math.random() * 4) + 1;
+
+        if (progress >= 100) {
+            progress = 100;
+            clearInterval(timer);
+
+            if (oscillator) {
+                oscillator.stop();
+            }
+
+            clearInterval(soundTimer);
+
+            alertText.textContent = "[✓] Provera završena";
+            alertText.className = "status ok";
+
+            setTimeout(() => {
+                document.getElementById("screen").innerHTML = `
+                    <div class="final">
+                        <h2>😂 ŠALA!</h2>
+                        <p>Nema nikakvog virusa.</p>
+                        <p>Ovo je bila samo bezazlena šala.</p>
+                        <p style="color:#777">
+                            Telefon nije skeniran niti je bilo šta promenjeno.
+                        </p>
+                    </div>
+                `;
+            }, 1500);
+        }
+
+        progressBar.style.width = progress + "%";
+        percent.textContent = progress + "%";
+    }, 350);
+}
+
+document.body.addEventListener("click", startPrank);
+document.body.addEventListener("touchstart", startPrank);
 </script>
 
 </body>
